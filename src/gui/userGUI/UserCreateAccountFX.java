@@ -1,0 +1,145 @@
+package src.gui.userGUI;
+
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import src.*;
+
+import java.io.IOException;
+
+public class UserCreateAccountFX extends Application {
+    private final User user;
+    private final Scene userOptionsScene;
+    private final Employee employee;
+    UserCreateAccountFX(Scene userOptionsScene, User user, Employee employee) {
+        this.user = user;
+        this.userOptionsScene = userOptionsScene;
+        this.employee = employee;
+    }
+    /**
+     * Sets the scene for account creation
+     * @param primaryStage The application window
+     */
+    @Override
+    public void start(Stage primaryStage) {
+
+        // Creates the scene and displays it to the main window
+        Scene userCreateAccountPaneSetup = new Scene(userCreateAccountPaneSetup(primaryStage), 1024, 768);
+        primaryStage.setScene(userCreateAccountPaneSetup);
+    }
+    /**
+     * The scene for accountCreation
+     * @param primaryStage The application window
+     */
+    private GridPane userCreateAccountPaneSetup(Stage primaryStage) {
+
+        ToggleGroup accountTypeGroup = new ToggleGroup();
+
+        Text accountTypeText = new Text("Select Account Type:");
+        RadioButton chequingButton = new RadioButton("Chequing");
+        RadioButton savingsButton = new RadioButton("Savings");
+        RadioButton creditCardButton = new RadioButton("Credit Card");
+        RadioButton lineOfCreditButton = new RadioButton("Line Of Credit");
+        RadioButton stocksButton = new RadioButton("Stocks");
+
+        chequingButton.setToggleGroup(accountTypeGroup);
+        savingsButton.setToggleGroup(accountTypeGroup);
+        creditCardButton.setToggleGroup(accountTypeGroup);
+        lineOfCreditButton.setToggleGroup(accountTypeGroup);
+        stocksButton.setToggleGroup(accountTypeGroup);
+
+        chequingButton.setTooltip(new Tooltip("Chequing"));
+        savingsButton.setTooltip(new Tooltip("Savings"));
+        creditCardButton.setTooltip(new Tooltip("CreditCard"));
+        lineOfCreditButton.setTooltip(new Tooltip("LineOfCredit"));
+        stocksButton.setTooltip(new Tooltip("StockAccount"));
+
+        Text accountNameText = new Text("Account Name (alphanumeric):");
+        TextField accountNameField = new TextField();
+
+        Text accountCurrencyText = new Text("Currency (3 letters)");
+        TextField accountCurrencyField = new TextField();
+
+        Text accountCreatingMessage = new Text("");
+
+        //Creating Buttons
+        Button submitButton = new Button("Submit");
+        Button backButton = new Button("Back");
+
+        accountTypeGroup.selectedToggleProperty().addListener((ov, old_toggle, new_toggle) -> {
+            RadioButton rb = (RadioButton) accountTypeGroup.getSelectedToggle();
+            if (rb == stocksButton) {
+                accountCurrencyField.setText("USD");
+                accountCurrencyField.setDisable(true);
+            } else {
+                accountCurrencyField.setText("");
+                accountCurrencyField.setDisable(false);
+            }
+        });
+
+        //Creating a Grid Pane
+        GridPane gridPane = new GridPane();
+
+        gridPane.setMinSize(1024, 768);
+
+        //Setting the padding
+        gridPane.setPadding(new Insets(20, 20, 20, 20));
+
+        //Setting the vertical and horizontal gaps between the columns
+        gridPane.setVgap(5);
+        gridPane.setHgap(5);
+//        gridPane.gridLinesVisibleProperty().setValue(true);
+
+        //Setting the Grid alignment
+        gridPane.setAlignment(Pos.CENTER);
+
+        //Arranging all the nodes in the grid
+        gridPane.add(accountTypeText, 0, 1);
+        gridPane.add(chequingButton, 0, 2);
+        gridPane.add(savingsButton, 0, 3);
+        gridPane.add(creditCardButton, 0, 4);
+        gridPane.add(lineOfCreditButton, 0, 5);
+        gridPane.add(stocksButton, 0, 6);
+
+        gridPane.add(accountNameText, 1, 1);
+        gridPane.add(accountNameField, 1, 2);
+        gridPane.add(accountCurrencyText, 1, 3);
+        gridPane.add(accountCurrencyField, 1, 4);
+
+        gridPane.add(submitButton, 1, 5);
+        gridPane.add(backButton, 1, 6);
+        gridPane.add(accountCreatingMessage, 1, 7);
+
+        backButton.setOnAction(e -> primaryStage.setScene(this.userOptionsScene));
+
+        submitButton.setOnAction(event -> {
+            String username = user.getUsername();
+            String accountType = ((RadioButton) accountTypeGroup.getSelectedToggle()).getTooltip().getText();
+            String accountName = accountNameField.getText();
+            String accountCurrency = accountCurrencyField.getText();
+            boolean success;
+            try {
+                // CHECK IF IT IS A REAL CURRENCY!!!
+                ((BankManager) employee).createAccount(username, accountType, accountName, accountCurrency);
+                success = true;
+            } catch (IOException exception) {
+                accountCreatingMessage.setText(exception.getMessage());
+                success = false;
+            }
+            if (success) {
+                accountCreatingMessage.setText("Account Creation Successful!");
+            }
+            accountNameField.clear();
+        });
+
+
+        return gridPane;
+    }
+
+
+}
